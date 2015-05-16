@@ -6,7 +6,7 @@ The functionality should be equivalent to the GitHub Markdown API endpoint speci
 https://developer.github.com/v3/markdown/#render-a-markdown-document-in-raw-mode, except
 the rendering is performed locally.
 
-See example below for how to generate a complete HTML page, including CSS styles.
+See examples for how to generate a complete HTML page, including CSS styles.
 */
 package github_flavored_markdown
 
