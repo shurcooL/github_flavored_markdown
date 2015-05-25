@@ -1,4 +1,4 @@
-# github_flavored_markdown [![Build Status](https://travis-ci.org/shurcooL/github_flavored_markdown.svg?branch=master)](https://travis-ci.org/shurcooL/github_flavored_markdown)
+# github_flavored_markdown [![Build Status](https://travis-ci.org/shurcooL/github_flavored_markdown.svg?branch=master)](https://travis-ci.org/shurcooL/github_flavored_markdown) [![GoDoc](https://godoc.org/github.com/shurcooL/github_flavored_markdown?status.svg)](https://godoc.org/github.com/shurcooL/github_flavored_markdown)
 
 Package github_flavored_markdown provides a GitHub Flavored Markdown renderer
 with fenced code block highlighting, clickable header anchor links.
