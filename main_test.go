@@ -40,3 +40,12 @@ func ExampleHeader() {
 	// Output:
 	// <h2><a name="git-diff" class="anchor" href="#git-diff" rel="nofollow" aria-hidden="true"><span class="octicon octicon-link"></span></a>git diff</h2>
 }
+
+func ExampleHeaderLink() {
+	text := []byte("### [Some **bold** _italic_ link](http://www.example.com)")
+
+	os.Stdout.Write(github_flavored_markdown.Markdown(text))
+
+	// Output:
+	// <h3><a name="some-bold-italic-link" class="anchor" href="#some-bold-italic-link" rel="nofollow" aria-hidden="true"><span class="octicon octicon-link"></span></a><a href="http://www.example.com" rel="nofollow">Some <strong>bold</strong> <em>italic</em> link</a></h3>
+}

@@ -13,7 +13,6 @@ package github_flavored_markdown
 import (
 	"bytes"
 	"fmt"
-	"html"
 	"io"
 	"regexp"
 	"sort"
@@ -27,6 +26,7 @@ import (
 	"github.com/shurcooL/sanitized_anchor_name"
 	"github.com/sourcegraph/annotate"
 	"github.com/sourcegraph/syntaxhighlight"
+	"golang.org/x/net/html"
 )
 
 // Markdown renders GitHub Flavored Markdown text.
@@ -71,14 +71,35 @@ func (_ *renderer) Header(out *bytes.Buffer, text func() bool, level int, _ stri
 		return
 	}
 
-	textString := out.String()[marker:]
+	textHtml := out.String()[marker:]
 	out.Truncate(marker)
 
-	anchorName := sanitized_anchor_name.Create(html.UnescapeString(textString))
+	// Extract text content of the header.
+	var textContent string
+	if node, err := html.Parse(strings.NewReader(textHtml)); err == nil {
+		textContent = extractText(node)
+	} else {
+		// Failed to parse HTML (probably can never happen), so just use the whole thing.
+		textContent = html.UnescapeString(textHtml)
+	}
+	anchorName := sanitized_anchor_name.Create(textContent)
 
 	out.WriteString(fmt.Sprintf(`<h%d><a name="%s" class="anchor" href="#%s" rel="nofollow" aria-hidden="true"><span class="octicon octicon-link"></span></a>`, level, anchorName, anchorName))
-	out.WriteString(textString)
+	out.WriteString(textHtml)
 	out.WriteString(fmt.Sprintf("</h%d>\n", level))
+}
+
+// extractText returns the recursive concatenation of the text content of an html node.
+func extractText(n *html.Node) string {
+	var out string
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		if c.Type == html.TextNode {
+			out += c.Data
+		} else {
+			out += extractText(c)
+		}
+	}
+	return out
 }
 
 // TODO: Clean up and improve this code.
