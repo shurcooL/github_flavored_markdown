@@ -52,6 +52,8 @@ func Markdown(text []byte) []byte {
 	p.AllowAttrs("class", "name").Matching(bluemonday.SpaceSeparatedTokens).OnElements("a")
 	p.AllowAttrs("rel").Matching(regexp.MustCompile(`^nofollow$`)).OnElements("a")
 	p.AllowAttrs("aria-hidden").Matching(regexp.MustCompile(`^true$`)).OnElements("a")
+	p.AllowAttrs("type").Matching(regexp.MustCompile(`^checkbox$`)).OnElements("input")
+	p.AllowAttrs("checked", "disabled").Matching(regexp.MustCompile(`^$`)).OnElements("input")
 	p.AllowDataURIImages()
 
 	return p.SanitizeBytes(unsanitized)
@@ -139,6 +141,17 @@ func (_ *renderer) BlockCode(out *bytes.Buffer, text []byte, lang string) {
 	} else {
 		out.WriteString("</pre></div>\n")
 	}
+}
+
+// Task List support.
+func (r *renderer) ListItem(out *bytes.Buffer, text []byte, flags int) {
+	switch {
+	case bytes.HasPrefix(text, []byte("[ ] ")):
+		text = append([]byte(`<input type="checkbox" disabled="">`), text[3:]...)
+	case bytes.HasPrefix(text, []byte("[x] ")) || bytes.HasPrefix(text, []byte("[X] ")):
+		text = append([]byte(`<input type="checkbox" checked="" disabled="">`), text[3:]...)
+	}
+	r.Html.ListItem(out, text, flags)
 }
 
 var gfmHtmlConfig = syntaxhighlight.HTMLConfig{
