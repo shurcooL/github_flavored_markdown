@@ -13,7 +13,6 @@ package github_flavored_markdown
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"regexp"
 	"sort"
 	"strings"
@@ -270,7 +269,7 @@ func highlightCode(src []byte, lang string) (highlightedCode []byte, ok bool) {
 
 			sort.Sort(anns)
 
-			out, err := annotate.Annotate(src, anns, func(w io.Writer, b []byte) { template.HTMLEscape(w, b) })
+			out, err := annotate.Annotate(src, anns, template.HTMLEscape)
 			if err != nil {
 				return nil, false
 			}
