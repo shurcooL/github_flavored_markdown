@@ -20,7 +20,8 @@ func ExampleMarkdown() {
 }
 
 // An example of how to generate a complete HTML page, including CSS styles.
-func ExampleMarkdown_completeHtmlPage() {
+func ExampleMarkdown_completeHTMLPage() {
+	// Serve the "/assets/gfm.css" file.
 	http.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(gfmstyle.Assets)))
 
 	var w io.Writer = os.Stdout // It can be an http.ResponseWriter.
