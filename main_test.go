@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"testing"
 
 	"github.com/shurcooL/github_flavored_markdown"
 	"github.com/shurcooL/github_flavored_markdown/gfmstyle"
@@ -36,34 +37,37 @@ func ExampleMarkdown_completeHtmlPage() {
 	// </article></body></html>
 }
 
-func ExampleHeader() {
-	text := []byte("## git diff")
-
-	os.Stdout.Write(github_flavored_markdown.Markdown(text))
-
-	// Output:
-	// <h2><a name="git-diff" class="anchor" href="#git-diff" rel="nofollow" aria-hidden="true"><span class="octicon octicon-link"></span></a>git diff</h2>
-}
-
-func ExampleHeaderLink() {
-	text := []byte("### [Some **bold** _italic_ link](http://www.example.com)")
-
-	os.Stdout.Write(github_flavored_markdown.Markdown(text))
-
-	// Output:
-	// <h3><a name="some-bold-italic-link" class="anchor" href="#some-bold-italic-link" rel="nofollow" aria-hidden="true"><span class="octicon octicon-link"></span></a><a href="http://www.example.com" rel="nofollow">Some <strong>bold</strong> <em>italic</em> link</a></h3>
-}
-
-func ExampleTaskList() {
-	text := []byte(`- [ ] This is an incomplete task.
+func TestComponents(t *testing.T) {
+	tests := []struct {
+		text string
+		want string
+	}{
+		{
+			// Header.
+			text: "## git diff",
+			want: `<h2><a name="git-diff" class="anchor" href="#git-diff" rel="nofollow" aria-hidden="true"><span class="octicon octicon-link"></span></a>git diff</h2>` + "\n",
+		},
+		{
+			// Header Link.
+			text: "### [Some **bold** _italic_ link](http://www.example.com)",
+			want: `<h3><a name="some-bold-italic-link" class="anchor" href="#some-bold-italic-link" rel="nofollow" aria-hidden="true"><span class="octicon octicon-link"></span></a><a href="http://www.example.com" rel="nofollow">Some <strong>bold</strong> <em>italic</em> link</a></h3>` + "\n",
+		},
+		{
+			// Task List.
+			text: `- [ ] This is an incomplete task.
 - [x] This is done.
-`)
+`,
+			want: `<ul>
+<li><input type="checkbox" disabled=""> This is an incomplete task.</li>
+<li><input type="checkbox" checked="" disabled=""> This is done.</li>
+</ul>
+`,
+		},
+	}
 
-	os.Stdout.Write(github_flavored_markdown.Markdown(text))
-
-	// Output:
-	// <ul>
-	// <li><input type="checkbox" disabled=""> This is an incomplete task.</li>
-	// <li><input type="checkbox" checked="" disabled=""> This is done.</li>
-	// </ul>
+	for _, test := range tests {
+		if got := string(github_flavored_markdown.Markdown([]byte(test.text))); got != test.want {
+			t.Errorf("\ngot %q\nwant %q", got, test.want)
+		}
+	}
 }

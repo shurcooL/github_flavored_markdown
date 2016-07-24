@@ -14,7 +14,7 @@ import (
 )
 
 // In this test, nothing should be sanitized away.
-func TestSanitize1(t *testing.T) {
+func TestSanitizeLarge(t *testing.T) {
 	var text = []byte(`### GitHub Flavored Markdown rendered locally using go gettable native Go code
 
 ` + "```Go" + `
@@ -82,57 +82,61 @@ index dc83bf7..5260a7d 100644
 	}
 }
 
-// Make sure that <script> tag is sanitized away.
-func TestSanitize2(t *testing.T) {
-	text := []byte("Hello <script>alert();</script> world.")
+func TestSanitize(t *testing.T) {
+	tests := []struct {
+		text string
+		want string
+	}{
+		{
+			// Make sure that <script> tag is sanitized away.
+			text: "Hello <script>alert();</script> world.",
+			want: "<p>Hello  world.</p>\n",
+		},
+		{
+			// Make sure that "class" attribute values that are not sane get sanitized away.
+			// Just a normal class name, should be preserved.
+			text: `Hello <span class="foo bar bash">there</span> world.`,
+			want: `<p>Hello <span class="foo bar bash">there</span> world.</p>` + "\n",
+		},
+		{
+			// JavaScript in class name, should be sanitized away.
+			text: `Hello <span class="javascript:alert('XSS')">there</span> world.`,
+			want: "<p>Hello <span>there</span> world.</p>" + "\n",
+		},
+		{
+			// Script injection attempt, should be sanitized away.
+			text: `Hello <span class="><script src='http://hackers.org/XSS.js'></script>">there</span> world.`,
+			want: "<p>Hello ",
+		},
+	}
 
-	if expected, got := "<p>Hello  world.</p>\n", string(Markdown(text)); expected != got {
-		t.Errorf("expected: %q, got: %q\n", expected, got)
+	for _, test := range tests {
+		if got := string(Markdown([]byte(test.text))); got != test.want {
+			t.Errorf("\ngot %q\nwant %q", got, test.want)
+		}
 	}
 }
 
-// Make sure that "class" attribute values that are not sane get sanitized away.
-func TestSanitize3a(t *testing.T) {
-	// Just a normal class name, should be preserved.
-	text := []byte(`Hello <span class="foo bar bash">there</span> world.`)
-
-	if expected, got := `<p>Hello <span class="foo bar bash">there</span> world.</p>`+"\n", string(Markdown(text)); expected != got {
-		t.Errorf("expected: %q, got: %q\n", expected, got)
+func TestSanitizeAnchorName(t *testing.T) {
+	tests := []struct {
+		text string
+		want string
+	}{
+		{
+			text: "## Did you just steal this template from Tom's TOML?",
+			want: `<h2><a name="did-you-just-steal-this-template-from-tom-s-toml" class="anchor" href="#did-you-just-steal-this-template-from-tom-s-toml" rel="nofollow" aria-hidden="true"><span class="octicon octicon-link"></span></a>Did you just steal this template from Tom&#39;s TOML?</h2>` + "\n",
+		},
+		{
+			text: `## What about "quotes" & things?`,
+			want: `<h2><a name="what-about-quotes-things" class="anchor" href="#what-about-quotes-things" rel="nofollow" aria-hidden="true"><span class="octicon octicon-link"></span></a>What about &#34;quotes&#34; &amp; things?</h2>` + "\n",
+		},
 	}
-}
-func TestSanitize3b(t *testing.T) {
-	// JavaScript in class name, should be sanitized away.
-	text := []byte(`Hello <span class="javascript:alert('XSS')">there</span> world.`)
 
-	if expected, got := "<p>Hello <span>there</span> world.</p>"+"\n", string(Markdown(text)); expected != got {
-		t.Errorf("expected: %q, got: %q\n", expected, got)
+	for _, test := range tests {
+		if got := string(Markdown([]byte(test.text))); got != test.want {
+			t.Errorf("\ngot %q\nwant %q", got, test.want)
+		}
 	}
-}
-func TestSanitize3c(t *testing.T) {
-	// Script injection attempt, should be sanitized away.
-	text := []byte(`Hello <span class="><script src='http://hackers.org/XSS.js'></script>">there</span> world.`)
-
-	if expected, got := "<p>Hello ", string(Markdown(text)); expected != got {
-		t.Errorf("expected: %q, got: %q\n", expected, got)
-	}
-}
-
-func ExampleSanitizeAnchorName() {
-	text := []byte("## Did you just steal this template from Tom's TOML?")
-
-	os.Stdout.Write(Markdown(text))
-
-	// Output:
-	// <h2><a name="did-you-just-steal-this-template-from-tom-s-toml" class="anchor" href="#did-you-just-steal-this-template-from-tom-s-toml" rel="nofollow" aria-hidden="true"><span class="octicon octicon-link"></span></a>Did you just steal this template from Tom&#39;s TOML?</h2>
-}
-
-func ExampleSanitizeAnchorName2() {
-	text := []byte(`## What about "quotes" & things?`)
-
-	os.Stdout.Write(Markdown(text))
-
-	// Output:
-	// <h2><a name="what-about-quotes-things" class="anchor" href="#what-about-quotes-things" rel="nofollow" aria-hidden="true"><span class="octicon octicon-link"></span></a>What about &#34;quotes&#34; &amp; things?</h2>
 }
 
 // TODO: Factor out.
