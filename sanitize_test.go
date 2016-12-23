@@ -47,18 +47,7 @@ index dc83bf7..5260a7d 100644
 `)
 
 	htmlFlags := 0
-	//htmlFlags |= blackfriday.HTML_SANITIZE_OUTPUT
 	renderer := &renderer{Html: blackfriday.HtmlRenderer(htmlFlags, "", "").(*blackfriday.Html)}
-
-	// Parser extensions for GitHub Flavored Markdown.
-	extensions := 0
-	extensions |= blackfriday.EXTENSION_NO_INTRA_EMPHASIS
-	extensions |= blackfriday.EXTENSION_TABLES
-	extensions |= blackfriday.EXTENSION_FENCED_CODE
-	extensions |= blackfriday.EXTENSION_AUTOLINK
-	extensions |= blackfriday.EXTENSION_STRIKETHROUGH
-	extensions |= blackfriday.EXTENSION_SPACE_HEADERS
-	extensions |= blackfriday.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK
 
 	unsanitized := blackfriday.Markdown(text, renderer, extensions)
 

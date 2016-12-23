@@ -30,18 +30,8 @@ import (
 
 // Markdown renders GitHub Flavored Markdown text.
 func Markdown(text []byte) []byte {
-	htmlFlags := 0
+	const htmlFlags = 0
 	renderer := &renderer{Html: blackfriday.HtmlRenderer(htmlFlags, "", "").(*blackfriday.Html)}
-
-	// Parser extensions for GitHub Flavored Markdown.
-	extensions := 0
-	extensions |= blackfriday.EXTENSION_NO_INTRA_EMPHASIS
-	extensions |= blackfriday.EXTENSION_TABLES
-	extensions |= blackfriday.EXTENSION_FENCED_CODE
-	extensions |= blackfriday.EXTENSION_AUTOLINK
-	extensions |= blackfriday.EXTENSION_STRIKETHROUGH
-	extensions |= blackfriday.EXTENSION_SPACE_HEADERS
-	extensions |= blackfriday.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK
 
 	unsanitized := blackfriday.Markdown(text, renderer, extensions)
 
@@ -58,12 +48,21 @@ func Markdown(text []byte) []byte {
 	return p.SanitizeBytes(unsanitized)
 }
 
+// extensions for GitHub Flavored Markdown-like parsing.
+const extensions = blackfriday.EXTENSION_NO_INTRA_EMPHASIS |
+	blackfriday.EXTENSION_TABLES |
+	blackfriday.EXTENSION_FENCED_CODE |
+	blackfriday.EXTENSION_AUTOLINK |
+	blackfriday.EXTENSION_STRIKETHROUGH |
+	blackfriday.EXTENSION_SPACE_HEADERS |
+	blackfriday.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK
+
 type renderer struct {
 	*blackfriday.Html
 }
 
 // GitHub Flavored Markdown header with clickable and hidden anchor.
-func (_ *renderer) Header(out *bytes.Buffer, text func() bool, level int, _ string) {
+func (*renderer) Header(out *bytes.Buffer, text func() bool, level int, _ string) {
 	marker := out.Len()
 	doubleSpace(out)
 
@@ -72,21 +71,21 @@ func (_ *renderer) Header(out *bytes.Buffer, text func() bool, level int, _ stri
 		return
 	}
 
-	textHtml := out.String()[marker:]
+	textHTML := out.String()[marker:]
 	out.Truncate(marker)
 
 	// Extract text content of the header.
 	var textContent string
-	if node, err := html.Parse(strings.NewReader(textHtml)); err == nil {
+	if node, err := html.Parse(strings.NewReader(textHTML)); err == nil {
 		textContent = extractText(node)
 	} else {
 		// Failed to parse HTML (probably can never happen), so just use the whole thing.
-		textContent = html.UnescapeString(textHtml)
+		textContent = html.UnescapeString(textHTML)
 	}
 	anchorName := sanitized_anchor_name.Create(textContent)
 
 	out.WriteString(fmt.Sprintf(`<h%d><a name="%s" class="anchor" href="#%s" rel="nofollow" aria-hidden="true"><span class="octicon octicon-link"></span></a>`, level, anchorName, anchorName))
-	out.WriteString(textHtml)
+	out.WriteString(textHTML)
 	out.WriteString(fmt.Sprintf("</h%d>\n", level))
 }
 
@@ -105,7 +104,7 @@ func extractText(n *html.Node) string {
 
 // TODO: Clean up and improve this code.
 // GitHub Flavored Markdown fenced code block with highlighting.
-func (_ *renderer) BlockCode(out *bytes.Buffer, text []byte, lang string) {
+func (*renderer) BlockCode(out *bytes.Buffer, text []byte, lang string) {
 	doubleSpace(out)
 
 	// parse out the language name
@@ -153,7 +152,7 @@ func (r *renderer) ListItem(out *bytes.Buffer, text []byte, flags int) {
 	r.Html.ListItem(out, text, flags)
 }
 
-var gfmHtmlConfig = syntaxhighlight.HTMLConfig{
+var gfmHTMLConfig = syntaxhighlight.HTMLConfig{
 	String:        "s",
 	Keyword:       "k",
 	Comment:       "c",
@@ -173,14 +172,14 @@ func highlightCode(src []byte, lang string) (highlightedCode []byte, ok bool) {
 	switch lang {
 	case "Go":
 		var buf bytes.Buffer
-		err := highlight_go.Print(src, &buf, syntaxhighlight.HTMLPrinter(gfmHtmlConfig))
+		err := highlight_go.Print(src, &buf, syntaxhighlight.HTMLPrinter(gfmHTMLConfig))
 		if err != nil {
 			return nil, false
 		}
 		return buf.Bytes(), true
 	case "Go-old":
 		var buf bytes.Buffer
-		err := syntaxhighlight.Print(syntaxhighlight.NewScanner(src), &buf, syntaxhighlight.HTMLPrinter(gfmHtmlConfig))
+		err := syntaxhighlight.Print(syntaxhighlight.NewScanner(src), &buf, syntaxhighlight.HTMLPrinter(gfmHTMLConfig))
 		if err != nil {
 			return nil, false
 		}
