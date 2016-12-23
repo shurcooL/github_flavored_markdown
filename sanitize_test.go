@@ -58,7 +58,7 @@ index dc83bf7..5260a7d 100644
 	extensions |= blackfriday.EXTENSION_AUTOLINK
 	extensions |= blackfriday.EXTENSION_STRIKETHROUGH
 	extensions |= blackfriday.EXTENSION_SPACE_HEADERS
-	//extensions |= blackfriday.EXTENSION_HARD_LINE_BREAK
+	extensions |= blackfriday.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK
 
 	unsanitized := blackfriday.Markdown(text, renderer, extensions)
 

@@ -64,6 +64,22 @@ func TestComponents(t *testing.T) {
 </ul>
 `,
 		},
+		{
+			// No need to insert an empty line to start a (code, quote, ordered list, unordered list) block.
+			// See issue https://github.com/shurcooL/github_flavored_markdown/issues/9.
+			text: `Some text
+- A
+- B
+- C`,
+			want: `<p>Some text</p>
+
+<ul>
+<li>A</li>
+<li>B</li>
+<li>C</li>
+</ul>
+`,
+		},
 	}
 
 	for _, test := range tests {
