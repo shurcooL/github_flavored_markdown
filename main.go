@@ -26,6 +26,7 @@ import (
 	"github.com/sourcegraph/annotate"
 	"github.com/sourcegraph/syntaxhighlight"
 	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 )
 
 // Markdown renders GitHub Flavored Markdown text.
@@ -35,6 +36,33 @@ func Markdown(text []byte) []byte {
 	unsanitized := blackfriday.Markdown(text, renderer, extensions)
 	sanitized := policy.SanitizeBytes(unsanitized)
 	return sanitized
+}
+
+// Header returns a header HTML node with title text.
+// The header comes with an anchor based on the title.
+//
+// header can be one of atom.H1, atom.H2, atom.H3, atom.H4, atom.H5, atom.H6.
+func Header(header atom.Atom, title string) *html.Node {
+	aName := sanitized_anchor_name.Create(title)
+	a := &html.Node{
+		Type: html.ElementNode, Data: atom.A.String(),
+		Attr: []html.Attribute{
+			{Key: atom.Name.String(), Val: aName},
+			{Key: atom.Class.String(), Val: "anchor"},
+			{Key: atom.Href.String(), Val: "#" + aName},
+			{Key: atom.Rel.String(), Val: "nofollow"},
+			{Key: "aria-hidden", Val: "true"},
+		},
+	}
+	span := &html.Node{
+		Type: html.ElementNode, Data: atom.Span.String(),
+		Attr: []html.Attribute{{Key: atom.Class.String(), Val: "octicon octicon-link"}},
+	}
+	a.AppendChild(span)
+	h := &html.Node{Type: html.ElementNode, Data: header.String()}
+	h.AppendChild(a)
+	h.AppendChild(&html.Node{Type: html.TextNode, Data: title})
+	return h
 }
 
 // extensions for GitHub Flavored Markdown-like parsing.

@@ -8,6 +8,8 @@ import (
 
 	"github.com/shurcooL/github_flavored_markdown"
 	"github.com/shurcooL/github_flavored_markdown/gfmstyle"
+	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 )
 
 func ExampleMarkdown() {
@@ -87,4 +89,12 @@ func TestComponents(t *testing.T) {
 			t.Errorf("\ngot %q\nwant %q", got, test.want)
 		}
 	}
+}
+
+func ExampleHeader() {
+	header := github_flavored_markdown.Header(atom.H2, "Hello > Goodbye")
+	html.Render(os.Stdout, header)
+
+	// Output:
+	// <h2><a name="hello-goodbye" class="anchor" href="#hello-goodbye" rel="nofollow" aria-hidden="true"><span class="octicon octicon-link"></span></a>Hello &gt; Goodbye</h2>
 }
