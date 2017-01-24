@@ -22,6 +22,7 @@ import (
 	"github.com/russross/blackfriday"
 	"github.com/shurcooL/highlight_diff"
 	"github.com/shurcooL/highlight_go"
+	"github.com/shurcooL/octiconssvg"
 	"github.com/shurcooL/sanitized_anchor_name"
 	"github.com/sourcegraph/annotate"
 	"github.com/sourcegraph/syntaxhighlight"
@@ -56,7 +57,8 @@ func Header(header atom.Atom, title string) *html.Node {
 	}
 	span := &html.Node{
 		Type: html.ElementNode, Data: atom.Span.String(),
-		Attr: []html.Attribute{{Key: atom.Class.String(), Val: "octicon octicon-link"}},
+		Attr:       []html.Attribute{{Key: atom.Class.String(), Val: "octicon-link"}}, // TODO: Factor out the CSS for just headers.
+		FirstChild: octiconssvg.Link(),
 	}
 	a.AppendChild(span)
 	h := &html.Node{Type: html.ElementNode, Data: header.String()}
