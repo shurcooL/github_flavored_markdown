@@ -1,6 +1,6 @@
 /*
 Package github_flavored_markdown provides a GitHub Flavored Markdown renderer
-with fenced code block highlighting, clickable header anchor links.
+with fenced code block highlighting, clickable heading anchor links.
 
 The functionality should be equivalent to the GitHub Markdown API endpoint specified at
 https://developer.github.com/v3/markdown/#render-a-markdown-document-in-raw-mode, except
@@ -39,11 +39,11 @@ func Markdown(text []byte) []byte {
 	return sanitized
 }
 
-// Header returns a header HTML node with title text.
-// The header comes with an anchor based on the title.
+// Heading returns a heading HTML node with title text.
+// The heading comes with an anchor based on the title.
 //
-// header can be one of atom.H1, atom.H2, atom.H3, atom.H4, atom.H5, atom.H6.
-func Header(header atom.Atom, title string) *html.Node {
+// heading can be one of atom.H1, atom.H2, atom.H3, atom.H4, atom.H5, atom.H6.
+func Heading(heading atom.Atom, title string) *html.Node {
 	aName := sanitized_anchor_name.Create(title)
 	a := &html.Node{
 		Type: html.ElementNode, Data: atom.A.String(),
@@ -57,14 +57,25 @@ func Header(header atom.Atom, title string) *html.Node {
 	}
 	span := &html.Node{
 		Type: html.ElementNode, Data: atom.Span.String(),
-		Attr:       []html.Attribute{{Key: atom.Class.String(), Val: "octicon-link"}}, // TODO: Factor out the CSS for just headers.
+		Attr:       []html.Attribute{{Key: atom.Class.String(), Val: "octicon-link"}}, // TODO: Factor out the CSS for just headings.
 		FirstChild: octiconssvg.Link(),
 	}
 	a.AppendChild(span)
-	h := &html.Node{Type: html.ElementNode, Data: header.String()}
+	h := &html.Node{Type: html.ElementNode, Data: heading.String()}
 	h.AppendChild(a)
 	h.AppendChild(&html.Node{Type: html.TextNode, Data: title})
 	return h
+}
+
+// Header returns a heading HTML node with title text.
+// The heading comes with an anchor based on the title.
+//
+// heading can be one of atom.H1, atom.H2, atom.H3, atom.H4, atom.H5, atom.H6.
+//
+// Deprecated: Use Heading instead. This function was renamed to that, and will be deleted soon.
+func Header(heading atom.Atom, title string) *html.Node {
+	// TODO: Remove this deprecated func after 2017-02-24.
+	return Heading(heading, title)
 }
 
 // extensions for GitHub Flavored Markdown-like parsing.
@@ -93,7 +104,7 @@ type renderer struct {
 	*blackfriday.Html
 }
 
-// GitHub Flavored Markdown header with clickable and hidden anchor.
+// GitHub Flavored Markdown heading with clickable and hidden anchor.
 func (*renderer) Header(out *bytes.Buffer, text func() bool, level int, _ string) {
 	marker := out.Len()
 	doubleSpace(out)
@@ -106,7 +117,7 @@ func (*renderer) Header(out *bytes.Buffer, text func() bool, level int, _ string
 	textHTML := out.String()[marker:]
 	out.Truncate(marker)
 
-	// Extract text content of the header.
+	// Extract text content of the heading.
 	var textContent string
 	if node, err := html.Parse(strings.NewReader(textHTML)); err == nil {
 		textContent = extractText(node)

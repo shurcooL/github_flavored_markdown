@@ -148,9 +148,6 @@ func (f *vfsgen۰CompressedFile) Close() error {
 	return f.gr.Close()
 }
 
-// We already imported "bytes", but ended up not using it. Avoid unused import error.
-var _ = bytes.Reader{}
-
 // vfsgen۰DirInfo is a static definition of a directory.
 type vfsgen۰DirInfo struct {
 	name    string
