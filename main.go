@@ -67,17 +67,6 @@ func Heading(heading atom.Atom, title string) *html.Node {
 	return h
 }
 
-// Header returns a heading HTML node with title text.
-// The heading comes with an anchor based on the title.
-//
-// heading can be one of atom.H1, atom.H2, atom.H3, atom.H4, atom.H5, atom.H6.
-//
-// Deprecated: Use Heading instead. This function was renamed to that, and will be deleted soon.
-func Header(heading atom.Atom, title string) *html.Node {
-	// TODO: Remove this deprecated func after 2017-02-24.
-	return Heading(heading, title)
-}
-
 // extensions for GitHub Flavored Markdown-like parsing.
 const extensions = blackfriday.EXTENSION_NO_INTRA_EMPHASIS |
 	blackfriday.EXTENSION_TABLES |
