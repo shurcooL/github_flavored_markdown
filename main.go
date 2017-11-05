@@ -30,19 +30,31 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
+var ugcPolicy = newUGCPolicy()
+
+// extensions are extensions for blackfriday,
+// that activate needed features for GitHub Flavored Markdown-like parsing.
+const extensions = blackfriday.EXTENSION_NO_INTRA_EMPHASIS |
+	blackfriday.EXTENSION_TABLES |
+	blackfriday.EXTENSION_FENCED_CODE |
+	blackfriday.EXTENSION_AUTOLINK |
+	blackfriday.EXTENSION_STRIKETHROUGH |
+	blackfriday.EXTENSION_SPACE_HEADERS |
+	blackfriday.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK
+
 // Markdown renders GitHub Flavored Markdown text.
 func Markdown(text []byte) []byte {
 	const htmlFlags = 0
-	renderer := &renderer{Html: blackfriday.HtmlRenderer(htmlFlags, "", "").(*blackfriday.Html)}
+	renderer := &renderer{blackfriday.HtmlRenderer(htmlFlags, "", "").(*blackfriday.Html)}
 	unsanitized := blackfriday.Markdown(text, renderer, extensions)
-	sanitized := policy.SanitizeBytes(unsanitized)
+	sanitized := ugcPolicy.SanitizeBytes(unsanitized)
 	return sanitized
 }
 
 // Heading returns a heading HTML node with title text.
 // The heading comes with an anchor based on the title.
 //
-// heading can be one of atom.H1, atom.H2, atom.H3, atom.H4, atom.H5, atom.H6.
+// Heading can be one of atom.H1, atom.H2, atom.H3, atom.H4, atom.H5, atom.H6.
 func Heading(heading atom.Atom, title string) *html.Node {
 	aName := sanitized_anchor_name.Create(title)
 	a := &html.Node{
@@ -67,17 +79,7 @@ func Heading(heading atom.Atom, title string) *html.Node {
 	return h
 }
 
-// extensions for GitHub Flavored Markdown-like parsing.
-const extensions = blackfriday.EXTENSION_NO_INTRA_EMPHASIS |
-	blackfriday.EXTENSION_TABLES |
-	blackfriday.EXTENSION_FENCED_CODE |
-	blackfriday.EXTENSION_AUTOLINK |
-	blackfriday.EXTENSION_STRIKETHROUGH |
-	blackfriday.EXTENSION_SPACE_HEADERS |
-	blackfriday.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK
-
-// policy for GitHub Flavored Markdown-like sanitization.
-var policy = func() *bluemonday.Policy {
+func newUGCPolicy() *bluemonday.Policy {
 	p := bluemonday.UGCPolicy()
 	p.AllowAttrs("class").Matching(bluemonday.SpaceSeparatedTokens).OnElements("div", "span")
 	p.AllowAttrs("class", "name").Matching(bluemonday.SpaceSeparatedTokens).OnElements("a")
@@ -87,7 +89,7 @@ var policy = func() *bluemonday.Policy {
 	p.AllowAttrs("checked", "disabled").Matching(regexp.MustCompile(`^$`)).OnElements("input")
 	p.AllowDataURIImages()
 	return p
-}()
+}
 
 type renderer struct {
 	*blackfriday.Html
