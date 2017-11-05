@@ -135,30 +135,23 @@ func extractText(n *html.Node) string {
 }
 
 // TODO: Clean up and improve this code.
-// GitHub Flavored Markdown fenced code block with highlighting.
+// BlockCode renders GitHub Flavored Markdown fenced code block with highlighting.
 func (*renderer) BlockCode(out *bytes.Buffer, text []byte, lang string) {
 	doubleSpace(out)
 
 	// parse out the language name
-	count := 0
-	for _, elt := range strings.Fields(lang) {
-		if elt[0] == '.' {
-			elt = elt[1:]
-		}
-		if len(elt) == 0 {
-			continue
-		}
-		out.WriteString(`<div class="highlight highlight-`)
-		attrEscape(out, []byte(elt))
-		lang = elt
-		out.WriteString(`"><pre>`)
-		count++
-		break
+	lang = strings.TrimSpace(lang)
+	if len(lang) > 0 && lang[0] == '.' {
+		lang = lang[1:]
 	}
+	if len(lang) == 0 {
+		return
+	}
+	out.WriteString(`<div class="highlight highlight-`)
+	attrEscape(out, []byte(lang))
+	out.WriteString(`">`)
 
-	if count == 0 {
-		out.WriteString("<pre><code>")
-	}
+	out.WriteString("<pre><code>")
 
 	if highlightedCode, ok := highlightCode(text, lang); ok {
 		out.Write(highlightedCode)
@@ -166,11 +159,7 @@ func (*renderer) BlockCode(out *bytes.Buffer, text []byte, lang string) {
 		attrEscape(out, text)
 	}
 
-	if count == 0 {
-		out.WriteString("</code></pre>\n")
-	} else {
-		out.WriteString("</pre></div>\n")
-	}
+	out.WriteString("</code></pre></div>\n")
 }
 
 // Task List support.
