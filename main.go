@@ -201,7 +201,7 @@ var gfmHTMLConfig = syntaxhighlight.HTMLConfig{
 
 func highlightCode(src []byte, lang string) (highlightedCode []byte, ok bool) {
 	switch lang {
-	case "Go":
+	case "Go", "Go-unformatted":
 		var buf bytes.Buffer
 		err := highlight_go.Print(src, &buf, syntaxhighlight.HTMLPrinter(gfmHTMLConfig))
 		if err != nil {
