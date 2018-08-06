@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/microcosm-cc/bluemonday"
-	"github.com/russross/blackfriday"
+	blackfriday "gopkg.in/russross/blackfriday.v1"
 )
 
 // In this test, nothing should be sanitized away.
