@@ -6,6 +6,7 @@ import (
 	"go/build"
 	"log"
 	"net/http"
+	"path/filepath"
 )
 
 func importPathToDir(importPath string) string {
@@ -17,4 +18,4 @@ func importPathToDir(importPath string) string {
 }
 
 // Assets contains the gfm.css style file for rendering GitHub Flavored Markdown.
-var Assets = http.Dir(importPathToDir("github.com/shurcooL/github_flavored_markdown/gfmstyle/_data"))
+var Assets = http.Dir(filepath.Join(importPathToDir("github.com/shurcooL/github_flavored_markdown/gfmstyle"), "_data"))
