@@ -34,9 +34,10 @@ import (
 func Markdown(text []byte) []byte {
 	const htmlFlags = 0
 	renderer := &renderer{Html: blackfriday.HtmlRenderer(htmlFlags, "", "").(*blackfriday.Html)}
+	renderer.headerIDs = make(map[string]int)
+
 	unsanitized := blackfriday.Markdown(text, renderer, extensions)
-	sanitized := policy.SanitizeBytes(unsanitized)
-	return sanitized
+	return policy.SanitizeBytes(unsanitized)
 }
 
 // Heading returns a heading HTML node with title text.
@@ -91,10 +92,11 @@ var policy = func() *bluemonday.Policy {
 
 type renderer struct {
 	*blackfriday.Html
+	headerIDs map[string]int
 }
 
 // GitHub Flavored Markdown heading with clickable and hidden anchor.
-func (*renderer) Header(out *bytes.Buffer, text func() bool, level int, _ string) {
+func (r *renderer) Header(out *bytes.Buffer, text func() bool, level int, _ string) {
 	marker := out.Len()
 	doubleSpace(out)
 
@@ -114,9 +116,11 @@ func (*renderer) Header(out *bytes.Buffer, text func() bool, level int, _ string
 		// Failed to parse HTML (probably can never happen), so just use the whole thing.
 		textContent = html.UnescapeString(textHTML)
 	}
-	anchorName := sanitized_anchor_name.Create(textContent)
 
-	out.WriteString(fmt.Sprintf(`<h%d><a name="%s" class="anchor" href="#%s" rel="nofollow" aria-hidden="true"><span class="octicon octicon-link"></span></a>`, level, anchorName, anchorName))
+	id := sanitized_anchor_name.Create(textContent)
+	id = r.ensureUniqueHeaderID(id)
+
+	out.WriteString(fmt.Sprintf(`<h%d><a id="%s" class="anchor" href="#%s" aria-hidden="true" rel="nofollow"><span class="octicon octicon-link"></span></a>`, level, id, id))
 	out.WriteString(textHTML)
 	out.WriteString(fmt.Sprintf("</h%d>\n", level))
 }
@@ -329,4 +333,23 @@ func attrEscape(out *bytes.Buffer, src []byte) {
 	if org < len(src) {
 		out.Write(src[org:])
 	}
+}
+
+func (r *renderer) ensureUniqueHeaderID(id string) string {
+	for idx, found := r.headerIDs[id]; found; idx, found = r.headerIDs[id] {
+		tmp := fmt.Sprintf("%s-%d", id, idx+1)
+
+		if _, tmpFound := r.headerIDs[tmp]; !tmpFound {
+			r.headerIDs[id] = idx + 1
+			id = tmp
+		} else {
+			id = id + "-1"
+		}
+	}
+
+	if _, found := r.headerIDs[id]; !found {
+		r.headerIDs[id] = 0
+	}
+
+	return id
 }

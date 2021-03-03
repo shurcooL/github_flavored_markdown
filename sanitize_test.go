@@ -48,6 +48,7 @@ index dc83bf7..5260a7d 100644
 
 	htmlFlags := 0
 	renderer := &renderer{Html: blackfriday.HtmlRenderer(htmlFlags, "", "").(*blackfriday.Html)}
+	renderer.headerIDs = make(map[string]int)
 
 	unsanitized := blackfriday.Markdown(text, renderer, extensions)
 
@@ -113,11 +114,11 @@ func TestSanitizeAnchorName(t *testing.T) {
 	}{
 		{
 			text: "## Did you just steal this template from Tom's TOML?",
-			want: `<h2><a name="did-you-just-steal-this-template-from-tom-s-toml" class="anchor" href="#did-you-just-steal-this-template-from-tom-s-toml" rel="nofollow" aria-hidden="true"><span class="octicon octicon-link"></span></a>Did you just steal this template from Tom&#39;s TOML?</h2>` + "\n",
+			want: `<h2><a id="did-you-just-steal-this-template-from-tom-s-toml" class="anchor" href="#did-you-just-steal-this-template-from-tom-s-toml" aria-hidden="true" rel="nofollow"><span class="octicon octicon-link"></span></a>Did you just steal this template from Tom&#39;s TOML?</h2>` + "\n",
 		},
 		{
 			text: `## What about "quotes" & things?`,
-			want: `<h2><a name="what-about-quotes-things" class="anchor" href="#what-about-quotes-things" rel="nofollow" aria-hidden="true"><span class="octicon octicon-link"></span></a>What about &#34;quotes&#34; &amp; things?</h2>` + "\n",
+			want: `<h2><a id="what-about-quotes-things" class="anchor" href="#what-about-quotes-things" aria-hidden="true" rel="nofollow"><span class="octicon octicon-link"></span></a>What about &#34;quotes&#34; &amp; things?</h2>` + "\n",
 		},
 	}
 
