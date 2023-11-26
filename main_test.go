@@ -1,4 +1,4 @@
-package github_flavored_markdown_test
+package github_flavored_markdown
 
 import (
 	"io"
@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/shurcooL/github_flavored_markdown"
 	"github.com/shurcooL/github_flavored_markdown/gfmstyle"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
@@ -15,7 +14,7 @@ import (
 func ExampleMarkdown() {
 	text := []byte("Hello world github/linguist#1 **cool**, and #1!")
 
-	os.Stdout.Write(github_flavored_markdown.Markdown(text))
+	os.Stdout.Write(Markdown(text))
 
 	// Output:
 	// <p>Hello world github/linguist#1 <strong>cool</strong>, and #1!</p>
@@ -30,11 +29,11 @@ func ExampleMarkdown_completeHTMLPage() {
 	markdown := []byte("# GitHub Flavored Markdown\n\nHello.")
 
 	io.WriteString(w, `<html><head><meta charset="utf-8"><link href="/assets/gfm.css" media="all" rel="stylesheet" type="text/css" /><link href="//cdnjs.cloudflare.com/ajax/libs/octicons/2.1.2/octicons.css" media="all" rel="stylesheet" type="text/css" /></head><body><article class="markdown-body entry-content" style="padding: 30px;">`)
-	w.Write(github_flavored_markdown.Markdown(markdown))
+	w.Write(Markdown(markdown))
 	io.WriteString(w, `</article></body></html>`)
 
 	// Output:
-	// <html><head><meta charset="utf-8"><link href="/assets/gfm.css" media="all" rel="stylesheet" type="text/css" /><link href="//cdnjs.cloudflare.com/ajax/libs/octicons/2.1.2/octicons.css" media="all" rel="stylesheet" type="text/css" /></head><body><article class="markdown-body entry-content" style="padding: 30px;"><h1><a name="github-flavored-markdown" class="anchor" href="#github-flavored-markdown" rel="nofollow" aria-hidden="true"><span class="octicon octicon-link"></span></a>GitHub Flavored Markdown</h1>
+	// <html><head><meta charset="utf-8"><link href="/assets/gfm.css" media="all" rel="stylesheet" type="text/css" /><link href="//cdnjs.cloudflare.com/ajax/libs/octicons/2.1.2/octicons.css" media="all" rel="stylesheet" type="text/css" /></head><body><article class="markdown-body entry-content" style="padding: 30px;"><h1><a id="github-flavored-markdown" class="anchor" href="#github-flavored-markdown" aria-hidden="true" rel="nofollow"><span class="octicon octicon-link"></span></a>GitHub Flavored Markdown</h1>
 	//
 	// <p>Hello.</p>
 	// </article></body></html>
@@ -48,12 +47,12 @@ func TestComponents(t *testing.T) {
 		{
 			// Heading.
 			text: "## git diff",
-			want: `<h2><a name="git-diff" class="anchor" href="#git-diff" rel="nofollow" aria-hidden="true"><span class="octicon octicon-link"></span></a>git diff</h2>` + "\n",
+			want: `<h2><a id="git-diff" class="anchor" href="#git-diff" aria-hidden="true" rel="nofollow"><span class="octicon octicon-link"></span></a>git diff</h2>` + "\n",
 		},
 		{
 			// Heading Link.
 			text: "### [Some **bold** _italic_ link](http://www.example.com)",
-			want: `<h3><a name="some-bold-italic-link" class="anchor" href="#some-bold-italic-link" rel="nofollow" aria-hidden="true"><span class="octicon octicon-link"></span></a><a href="http://www.example.com" rel="nofollow">Some <strong>bold</strong> <em>italic</em> link</a></h3>` + "\n",
+			want: `<h3><a id="some-bold-italic-link" class="anchor" href="#some-bold-italic-link" aria-hidden="true" rel="nofollow"><span class="octicon octicon-link"></span></a><a href="http://www.example.com" rel="nofollow">Some <strong>bold</strong> <em>italic</em> link</a></h3>` + "\n",
 		},
 		{
 			// Task List.
@@ -85,14 +84,14 @@ func TestComponents(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		if got := string(github_flavored_markdown.Markdown([]byte(test.text))); got != test.want {
+		if got := string(Markdown([]byte(test.text))); got != test.want {
 			t.Errorf("\ngot %q\nwant %q", got, test.want)
 		}
 	}
 }
 
 func ExampleHeading() {
-	heading := github_flavored_markdown.Heading(atom.H2, "Hello > Goodbye")
+	heading := Heading(atom.H2, "Hello > Goodbye")
 	html.Render(os.Stdout, heading)
 
 	// Output:
